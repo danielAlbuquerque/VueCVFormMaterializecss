@@ -16,7 +16,8 @@
                         dt_nascimento: "data nascimento",
                         email1: "email principal",
                         email2: "email secundário",
-                        tel1: "telefone principal"
+                        tel1: "telefone principal",
+                        nivel_escolaridade: "escolaridade"
                     }
                 }
             })
@@ -41,7 +42,8 @@
                     bairro: '',
                     endereco: '',
                     areas_interesse: [],
-                    nivel_escolaridade: ''
+                    nivel_escolaridade: '',
+                    arquivo: ''
                 },
 
                 niveis: [
@@ -62,9 +64,13 @@
         methods: {
             submitForm () {
                 this.$validator.validateAll().then(() => {
-                    console.log("Enviando form")
+                    axios.post('/api/', this.frm).then(response => {
+                        console.log(response);
+                    }).catch(err => {
+                        console.log(err);
+                    });
                 }).catch(() => {
-                    Alert("Favor preencher os campos corretamente.")
+                    alert("Favor preencher os campos corretamente.")
                 })
             },
 
@@ -78,9 +84,19 @@
 
             },
 
-            onChangeEscolaridade (event) {
+            onChangeEscolaridade () {
                 console.log("teste")
                 // this.nivel_escolaridade = value
+            },
+
+
+            selectedFile (e) {
+                console.log(e.target.files[0]);
+                let fileReader = new FileReader()
+                fileReader.readAsDataURL(e.target.files[0])
+                fileReader.onload = (e) => {
+                    this.frm.arquivo = e.target.result
+                }
             },
 
             buscaCep () {
@@ -110,13 +126,15 @@
                         <div class="card-content">
                             <h5 class="header">Dados pessoais</h5>
                             <div class="row">
+
+
                                 <div class="input-field col s12 m9">
-                                    <input v-validate="'required'" v-model="frm.nome_completo" required name="nome_completo" type="text" maxlength="255">
+                                    <input v-validate="'required'" v-model="frm.nome_completo" name="nome_completo" type="text" maxlength="255">
                                     <label>Nome completo</label>
                                     <span v-show="errors.has('nome_completo')" class="erro">{{ errors.first('nome_completo') }}</span>
                                 </div>
                                 <div class="input-field col m3 s12">
-                                    <input v-validate="'required'" v-mask="'###.###.###-##'" v-model="frm.cpf" required name="cpf" type="text">
+                                    <input v-validate="'required'" v-mask="'###.###.###-##'" v-model="frm.cpf" name="cpf" type="text">
                                     <label class="">CPF</label>
                                     <span v-show="errors.has('cpf')" class="erro">{{ errors.first('cpf') }}</span>
                                 </div>
@@ -154,10 +172,9 @@
                                     <label for="tel2" class="">Telefone Secundário (opcional) </label>
                                 </div>
                                 <div class="input-field col m6 s12">
-                                    <select v-validate="'required'" v-model="frm.nivel_escolaridade" name="nivel_escolaridade" @change="onChangeEscolaridade($event)">
-                                        <option value="" disabled selected>Selecione</option>
-                                        <option v-for="option in niveis" v-bind:value="option.value">{{ option.value }}</option>
-                                    </select>
+                                    <material-select v-model="frm.nivel_escolaridade" @change="onChangeEscolaridade">
+                                         <option v-for="option in niveis" :value="option.value" v-text="option.value"></option>
+                                    </material-select>
                                     <label class="">Escolaridade</label>
                                     <span v-show="errors.has('nivel_escolaridade')" class="erro">{{ errors.first('nivel_escolaridade') }}</span>
                                 </div>
@@ -211,7 +228,7 @@
                                 <div class="file-field input-field col s12 m5">
                                     <div class="btn btn-flat">
                                         <i class="large material-icons">open_in_browser</i>
-                                        <input type="file">
+                                        <input type="file" @change="selectedFile($event)">
                                     </div>
                                     <div class="file-path-wrapper">
                                         <input class="file-path validate" type="text" placeholder="Selecione o arquivo">

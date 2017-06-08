@@ -26,8 +26,8 @@ class CreateAreasTable extends Migration
         });
 
         $areas = [];
-        $areas[]['descricao'] = "TECNOLOGIA DA INFORÇÃO(BANCO DE DADOS E DESENVOLVIMENTO)";
-        $areas[]['descricao'] = "TECNOLOGIA DA INFORÇÃO(INFRAESTRUTURA)";
+        $areas[]['descricao'] = "TECNOLOGIA DA INFORMAÇÃO (DESENVOLVIMENTO / BANCO DE DADOS)";
+        $areas[]['descricao'] = "TECNOLOGIA DA INFORMAÇÃO (INFRAESTRUTURA DE REDE / SUPORTE)";
         $areas[]['descricao'] = "GEOPROCESSAMENTO";
         $areas[]['descricao'] = "FLORESTAL";
         $areas[]['descricao'] = "FÁBRICA / PRODUÇÃO";
@@ -35,7 +35,6 @@ class CreateAreasTable extends Migration
         $areas[]['descricao'] = "SEGURANÇA PATRIMONIAL";
         $areas[]['descricao'] = "CONTABILIDADE / FINANCEIRO";
         $areas[]['descricao'] = "ADMINISTRATIVO / DEPARTAMENTO PESSOAL";
-        $areas[]['descricao'] = "OUTRA";
 
 
         DB::table('areas')->insert($areas);

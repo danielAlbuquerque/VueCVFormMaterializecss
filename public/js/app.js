@@ -10606,12 +10606,50 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 __webpack_require__(30);
 
-window.Vue = __webpack_require__(49);
-
 Vue.use(__WEBPACK_IMPORTED_MODULE_0_v_mask___default.a);
 Vue.use(__WEBPACK_IMPORTED_MODULE_1_vee_validate___default.a);
 
 Vue.component('FormCurriculum', __webpack_require__(43));
+Vue.component("material-select", {
+    template: '<select><slot></slot></select>',
+    props: ['value'],
+    watch: {
+        value: function value(_value) {
+
+            this.relaod(_value);
+        }
+    },
+    methods: {
+        relaod: function relaod(value) {
+
+            var select = $(this.$el);
+
+            select.val(value || this.value);
+            select.material_select('destroy');
+            select.material_select();
+        }
+    },
+    mounted: function mounted() {
+
+        var vm = this;
+        var select = $(this.$el);
+
+        select.val(this.value).on('change', function () {
+
+            vm.$emit('input', this.value);
+        });
+
+        select.material_select();
+    },
+    updated: function updated() {
+
+        this.relaod();
+    },
+    destroyed: function destroyed() {
+
+        $(this.$el).material_select('destroy');
+    }
+});
 
 var app = new Vue({
     el: '#app'
@@ -11485,7 +11523,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     dt_nascimento: "data nascimento",
                     email1: "email principal",
                     email2: "email secundário",
-                    tel1: "telefone principal"
+                    tel1: "telefone principal",
+                    nivel_escolaridade: "escolaridade"
                 }
             }
         });
@@ -11509,7 +11548,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 bairro: '',
                 endereco: '',
                 areas_interesse: [],
-                nivel_escolaridade: ''
+                nivel_escolaridade: '',
+                arquivo: ''
             },
 
             niveis: [{ value: 'Nível Médio Completo' }, { value: 'Nível Médio Incompleto' }, { value: 'Nível Técnico Completo' }, { value: 'Nível Técnico Incompleto' }, { value: 'Nível Superior Completo' }, { value: 'Nível Superior Incompleto' }],
@@ -11523,39 +11563,55 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
     methods: {
         submitForm: function submitForm() {
+            var _this = this;
+
             this.$validator.validateAll().then(function () {
-                console.log("Enviando form");
+                __WEBPACK_IMPORTED_MODULE_0_axios___default.a.post('/api/', _this.frm).then(function (response) {
+                    console.log(response);
+                }).catch(function (err) {
+                    console.log(err);
+                });
             }).catch(function () {
-                Alert("Favor preencher os campos corretamente.");
+                alert("Favor preencher os campos corretamente.");
             });
         },
         loadAreas: function loadAreas() {
-            var _this = this;
+            var _this2 = this;
 
             setTimeout(function () {
                 __WEBPACK_IMPORTED_MODULE_0_axios___default.a.get('/api/areas').then(function (response) {
-                    _this.areas = response.data;
-                    _this.loading = false;
+                    _this2.areas = response.data;
+                    _this2.loading = false;
                 });
             }, 1000);
         },
-        onChangeEscolaridade: function onChangeEscolaridade(event) {
+        onChangeEscolaridade: function onChangeEscolaridade() {
             console.log("teste"
             // this.nivel_escolaridade = value
             );
         },
+        selectedFile: function selectedFile(e) {
+            var _this3 = this;
+
+            console.log(e.target.files[0]);
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(e.target.files[0]);
+            fileReader.onload = function (e) {
+                _this3.frm.arquivo = e.target.result;
+            };
+        },
         buscaCep: function buscaCep() {
-            var _this2 = this;
+            var _this4 = this;
 
             if (this.frm.cep.length == 9) {
                 console.log(this.frm.cep);
                 __WEBPACK_IMPORTED_MODULE_0_axios___default.a.get('https://viacep.com.br/ws/' + this.frm.cep + '/json').then(function (response) {
                     if (!response.data.error) {
                         var data = response.data;
-                        _this2.frm.bairro = data.bairro;
-                        _this2.frm.cidade = data.localidade;
-                        _this2.frm.endereco = data.logradouro;
-                        _this2.frm.uf = data.uf;
+                        _this4.frm.bairro = data.bairro;
+                        _this4.frm.cidade = data.localidade;
+                        _this4.frm.endereco = data.logradouro;
+                        _this4.frm.uf = data.uf;
                     }
                 });
             }
@@ -11567,7 +11623,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
-
+window.Vue = __webpack_require__(49);
 window._ = __webpack_require__(35);
 
 try {
@@ -11587,6 +11643,29 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 // } else {
 //     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 // }
+
+
+Vue.directive("select", {
+    "twoWay": true,
+
+    "bind": function bind() {
+        $(this.el).material_select();
+
+        var self = this;
+
+        $(this.el).on('change', function () {
+            self.set($(self.el).val());
+        });
+    },
+
+    update: function update(newValue, oldValue) {
+        $(this.el).val(newValue);
+    },
+
+    "unbind": function unbind() {
+        $(this.el).material_select('destroy');
+    }
+});
 
 /***/ }),
 /* 31 */
@@ -45756,7 +45835,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       expression: "frm.nome_completo"
     }],
     attrs: {
-      "required": "",
       "name": "nome_completo",
       "type": "text",
       "maxlength": "255"
@@ -45798,7 +45876,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       expression: "frm.cpf"
     }],
     attrs: {
-      "required": "",
       "name": "cpf",
       "type": "text"
     },
@@ -46055,47 +46132,25 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }
   }, [_vm._v("Telefone Secundário (opcional) ")])]), _vm._v(" "), _c('div', {
     staticClass: "input-field col m6 s12"
-  }, [_c('select', {
-    directives: [{
-      name: "validate",
-      rawName: "v-validate",
-      value: ('required'),
-      expression: "'required'"
-    }, {
-      name: "model",
-      rawName: "v-model",
-      value: (_vm.frm.nivel_escolaridade),
-      expression: "frm.nivel_escolaridade"
-    }],
-    attrs: {
-      "name": "nivel_escolaridade"
-    },
+  }, [_c('material-select', {
     on: {
-      "change": [function($event) {
-        var $$selectedVal = Array.prototype.filter.call($event.target.options, function(o) {
-          return o.selected
-        }).map(function(o) {
-          var val = "_value" in o ? o._value : o.value;
-          return val
-        });
-        _vm.frm.nivel_escolaridade = $event.target.multiple ? $$selectedVal : $$selectedVal[0]
-      }, function($event) {
-        _vm.onChangeEscolaridade($event)
-      }]
+      "change": _vm.onChangeEscolaridade
+    },
+    model: {
+      value: (_vm.frm.nivel_escolaridade),
+      callback: function($$v) {
+        _vm.frm.nivel_escolaridade = $$v
+      },
+      expression: "frm.nivel_escolaridade"
     }
-  }, [_c('option', {
-    attrs: {
-      "value": "",
-      "disabled": "",
-      "selected": ""
-    }
-  }, [_vm._v("Selecione")]), _vm._v(" "), _vm._l((_vm.niveis), function(option) {
+  }, _vm._l((_vm.niveis), function(option) {
     return _c('option', {
       domProps: {
-        "value": option.value
+        "value": option.value,
+        "textContent": _vm._s(option.value)
       }
-    }, [_vm._v(_vm._s(option.value))])
-  })], 2), _vm._v(" "), _c('label', {}, [_vm._v("Escolaridade")]), _vm._v(" "), _c('span', {
+    })
+  })), _vm._v(" "), _c('label', {}, [_vm._v("Escolaridade")]), _vm._v(" "), _c('span', {
     directives: [{
       name: "show",
       rawName: "v-show",
@@ -46103,7 +46158,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       expression: "errors.has('nivel_escolaridade')"
     }],
     staticClass: "erro"
-  }, [_vm._v(_vm._s(_vm.errors.first('nivel_escolaridade')))])])]), _vm._v(" "), _c('h5', {
+  }, [_vm._v(_vm._s(_vm.errors.first('nivel_escolaridade')))])], 1)]), _vm._v(" "), _c('h5', {
     staticClass: "header"
   }, [_vm._v("Endereço")]), _vm._v(" "), _c('div', {
     staticClass: "row"
@@ -46302,7 +46357,24 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "top-buffer"
   }), _vm._v(" "), _c('h5', {
     staticClass: "header"
-  }, [_vm._v("Arquivo (opcional)")]), _vm._v(" "), _vm._m(1)], 2), _vm._v(" "), _vm._m(2)])])])])])
+  }, [_vm._v("Arquivo (opcional)")]), _vm._v(" "), _c('div', {
+    staticClass: "row"
+  }, [_c('div', {
+    staticClass: "file-field input-field col s12 m5"
+  }, [_c('div', {
+    staticClass: "btn btn-flat"
+  }, [_c('i', {
+    staticClass: "large material-icons"
+  }, [_vm._v("open_in_browser")]), _vm._v(" "), _c('input', {
+    attrs: {
+      "type": "file"
+    },
+    on: {
+      "change": function($event) {
+        _vm.selectedFile($event)
+      }
+    }
+  })]), _vm._v(" "), _vm._m(1)])])], 2), _vm._v(" "), _vm._m(2)])])])])])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('div', {
     staticClass: "spinner-layer spinner-blue-only"
@@ -46321,18 +46393,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   })])])
 },function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('div', {
-    staticClass: "row"
-  }, [_c('div', {
-    staticClass: "file-field input-field col s12 m5"
-  }, [_c('div', {
-    staticClass: "btn btn-flat"
-  }, [_c('i', {
-    staticClass: "large material-icons"
-  }, [_vm._v("open_in_browser")]), _vm._v(" "), _c('input', {
-    attrs: {
-      "type": "file"
-    }
-  })]), _vm._v(" "), _c('div', {
     staticClass: "file-path-wrapper"
   }, [_c('input', {
     staticClass: "file-path validate",
@@ -46340,7 +46400,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       "type": "text",
       "placeholder": "Selecione o arquivo"
     }
-  })])])])
+  })])
 },function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('div', {
     staticClass: "card-action"
