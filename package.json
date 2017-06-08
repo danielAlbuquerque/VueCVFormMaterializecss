@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "axios": "^0.15.3",
-    "bootstrap-sass": "^3.3.7",
     "cross-env": "^3.2.3",
     "jquery": "^3.1.1",
     "laravel-mix": "0.*",
@@ -19,7 +18,8 @@
     "vue": "^2.1.10"
   },
   "dependencies": {
-    "vee-validate": "^2.0.0-rc.5",
-    "vue-multiselect": "^2.0.0-beta.15"
+    "materialize-css": "^0.98.2",
+    "v-mask": "^1.2.0",
+    "vee-validate": "^2.0.0-rc.5"
   }
 }

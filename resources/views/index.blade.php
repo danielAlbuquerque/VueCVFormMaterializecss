@@ -25,10 +25,11 @@
 
   	<div class="container" id="app">
     	<form-curriculum> </form-curriculum>
-    </div>	
+    </div>
+
 
     <script src="https://unpkg.com/vue-multiselect@2.0.0-beta.14"></script>
     <script src="js/app.js"></script>
-	
+
 </body>
 </html>

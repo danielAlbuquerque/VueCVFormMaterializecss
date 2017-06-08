@@ -1,11 +1,27 @@
 <script>
     import axios from 'axios'
+    import pt from 'vee-validate/dist/locale/pt_BR'
 
     export default {
 
         mounted () {
             $('select').material_select()
             this.loadAreas()
+            console.log(pt);
+            this.$validator.updateDictionary({
+                pt_br: {
+                    messages: pt.messages,
+                    attributes: {
+                        nome_completo: "nome completo",
+                        dt_nascimento: "data nascimento",
+                        email1: "email principal",
+                        email2: "email secundário",
+                        tel1: "telefone principal"
+                    }
+                }
+            })
+
+            this.$validator.setLocale('pt_br')
         },
 
         data () {
@@ -27,7 +43,7 @@
                     areas_interesse: [],
                     nivel_escolaridade: ''
                 },
-                
+
                 niveis: [
                     {value: 'Nível Médio Completo'},
                     {value: 'Nível Médio Incompleto'},
@@ -37,27 +53,37 @@
                     {value: 'Nível Superior Incompleto'}
                 ],
 
-                areas: []
+                areas: [],
+
+                loading: true
             }
         },
 
         methods: {
             submitForm () {
-                console.log("Enviando data")
+                this.$validator.validateAll().then(() => {
+                    console.log("Enviando form")
+                }).catch(() => {
+                    Alert("Favor preencher os campos corretamente.")
+                })
             },
 
             loadAreas () {
-                axios.get('/api/areas').then(response => {
-                    this.areas = response.data
-                });
+                setTimeout(() => {
+                  axios.get('/api/areas').then(response => {
+                      this.areas = response.data
+                      this.loading =false;
+                  });
+                }, 1000)
+
             },
 
-            onChangeEscolaridade(event) {
+            onChangeEscolaridade (event) {
                 console.log("teste")
                 // this.nivel_escolaridade = value
             },
 
-            buscaCep() {
+            buscaCep () {
                 if(this.frm.cep.length == 9) {
                     console.log(this.frm.cep);
                     axios.get(`https://viacep.com.br/ws/${this.frm.cep}/json`).then(response => {
@@ -80,7 +106,7 @@
         <div class="row">
             <div class="col s12 m8 l12 offset-m2">
                 <div class="card z-depth-3">
-                    <form>
+                    <form @submit.prevent="submitForm">
                         <div class="card-content">
                             <h5 class="header">Dados pessoais</h5>
                             <div class="row">
@@ -88,35 +114,41 @@
                                     <input v-validate="'required'" v-model="frm.nome_completo" required name="nome_completo" type="text" maxlength="255">
                                     <label>Nome completo</label>
                                     <span v-show="errors.has('nome_completo')" class="erro">{{ errors.first('nome_completo') }}</span>
-                                </div>  
+                                </div>
                                 <div class="input-field col m3 s12">
                                     <input v-validate="'required'" v-mask="'###.###.###-##'" v-model="frm.cpf" required name="cpf" type="text">
                                     <label class="">CPF</label>
-                                </div>  
+                                    <span v-show="errors.has('cpf')" class="erro">{{ errors.first('cpf') }}</span>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="input-field col m2 s12">
                                     <input v-validate="'required'" v-model="frm.rg" name="rg" type="text">
                                     <label class="">RG</label>
-                                </div>  
+                                    <span v-show="errors.has('rg')" class="erro">{{ errors.first('rg') }}</span>
+                                </div>
                                 <div class="input-field col m2 s12">
                                     <input v-validate="'required'" v-mask="'##/##/####'" v-model="frm.dt_nascimento" name="dt_nascimento" type="text">
                                     <label class="">Dt. Nascimento</label>
+                                    <span v-show="errors.has('dt_nascimento')" class="erro">{{ errors.first('dt_nascimento') }}</span>
                                 </div>
                                 <div class="input-field col m4 s12">
-                                    <input id="email1" class="validate" v-validate="'required|email'" v-model="frm.email1" name="email1" type="email">
-                                    <label for="email1" class="" data-error="E-Mail inválido" data-success="E-Mail válido">E-Mail Principal</label>
+                                    <input id="email1" v-validate="'required|email'" v-model="frm.email1" name="email1" type="email">
+                                    <label for="email1" class="">E-Mail Principal</label>
+                                    <span v-show="errors.has('email1')" class="erro">{{ errors.first('email1') }}</span>
                                 </div>
                                 <div class="input-field col m4 s12">
                                     <input v-validate="'email'" v-model="frm.email2" name="email2" type="email">
                                     <label for="first_name" class="">E-Mail Secundário (opcional)</label>
+                                    <span v-show="errors.has('email2')" class="erro">{{ errors.first('email2') }}</span>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="input-field col m3 s12">
-                                    <input v-validate="'required'" v-mask="'(##) #####-####'" v-model="frm.tel1" id="tel1" type="tel">
+                                    <input v-validate="'required'" v-mask="'(##) #####-####'" v-model="frm.tel1" name="tel1" id="tel1" type="tel">
                                     <label for="tel1" class="">Telefone Principal</label>
-                                </div>  
+                                    <span v-show="errors.has('tel1')" class="erro">{{ errors.first('tel1') }}</span>
+                                </div>
                                 <div class="input-field col m3 s12">
                                     <input v-mask="'(##) #####-####'" v-model="frm.tel2" id="tel2" type="tel">
                                     <label for="tel2" class="">Telefone Secundário (opcional) </label>
@@ -127,6 +159,7 @@
                                         <option v-for="option in niveis" v-bind:value="option.value">{{ option.value }}</option>
                                     </select>
                                     <label class="">Escolaridade</label>
+                                    <span v-show="errors.has('nivel_escolaridade')" class="erro">{{ errors.first('nivel_escolaridade') }}</span>
                                 </div>
                             </div>
                             <h5 class="header">Endereço</h5>
@@ -134,7 +167,7 @@
                                 <div class="input-field col m3 s12">
                                     <input placeholder v-on:keyup="buscaCep" v-on:change="buscaCep" v-mask="'#####-###'" v-model="frm.cep" name="cep" type="text">
                                     <label class="">CEP</label>
-                                </div>  
+                                </div>
                                 <div class="input-field col m1 s12">
                                     <input placeholder="" v-model="frm.uf" maxlength="2" type="text">
                                     <label for="uf" class="">UF</label>
@@ -154,9 +187,20 @@
                                     <label for="endereco" class="">Endereço</label>
                                 </div>
                             </div>
-                           
+
                             <h5 class="header">Áreas de interesse</h5>
-                        
+                            <div v-show="loading" class="preloader-wrapper big active">
+                              <div class="spinner-layer spinner-blue-only">
+                                <div class="circle-clipper left">
+                                  <div class="circle"></div>
+                                </div><div class="gap-patch">
+                                  <div class="circle"></div>
+                                </div><div class="circle-clipper right">
+                                  <div class="circle"></div>
+                                </div>
+                              </div>
+                            </div>
+
                             <div v-for="area in areas" class="s12">
                                 <input v-model="frm.areas_interesse" type="checkbox" :id="area.id" :value="area.id" />
                                 <label :for="area.id">{{area.descricao}}</label>
@@ -176,7 +220,7 @@
                             </div>
                         </div>
                         <div class="card-action">
-                            <button @click="submitForm" type="button" class="waves-effect waves-light btn teal darken-3"><i class="material-icons left">done_all</i>Enviar</button>
+                            <button type="submit" class="waves-effect waves-light btn teal darken-3"><i class="material-icons left">done_all</i>Enviar</button>
                         </div>
                     </form>
                 </div>
