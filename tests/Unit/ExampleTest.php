@@ -15,6 +15,14 @@ class ExampleTest extends TestCase
      */
     public function testBasicTest()
     {
-        $this->assertTrue(true);
+    	$bool = 1 > 2;
+        $this->assertTrue($bool);
+    }
+
+
+    public function testBasicTest2()
+    {
+    	$bool = 5 > 19;
+        $this->assertTrue($bool);
     }
 }

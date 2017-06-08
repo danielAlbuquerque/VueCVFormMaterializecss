@@ -1,7 +1,5 @@
 <?php
 
-
-
 Route::get('/', function () {
     return view('index');
 });
@@ -9,4 +7,6 @@ Route::get('/', function () {
 
 Route::post('/', function () {
     dd(Request::all());
+
+    return recirect()->back();
 });
