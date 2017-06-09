@@ -1,133 +1,9 @@
-<script>
-    import axios from 'axios'
-    import pt from 'vee-validate/dist/locale/pt_BR'
-
-    export default {
-
-        mounted () {
-            $('select').material_select()
-            this.loadAreas()
-            this.$validator.updateDictionary({
-                pt_br: {
-                    messages: pt.messages,
-                    attributes: {
-                        nome_completo: "nome completo",
-                        dt_nascimento: "data nascimento",
-                        email1: "email principal",
-                        email2: "email secundário",
-                        tel1: "telefone principal",
-                        nivel_escolaridade: "escolaridade"
-                    }
-                }
-            })
-
-            this.$validator.setLocale('pt_br')
-        },
-
-        data () {
-            return {
-                frm: {
-                    nome_completo: '',
-                    cpf: '',
-                    rg: '',
-                    dt_nascimento: '',
-                    email1: '',
-                    email2: '',
-                    cel1: '',
-                    cel2: '',
-                    cep: '',
-                    cidade: '',
-                    uf: '',
-                    bairro: '',
-                    endereco: '',
-                    areas_interesse: [],
-                    nivel_escolaridade: '',
-                    arquivo: ''
-                },
-
-                niveis: [
-                    {value: 'Nível Médio Completo'},
-                    {value: 'Nível Médio Incompleto'},
-                    {value: 'Nível Técnico Completo'},
-                    {value: 'Nível Técnico Incompleto'},
-                    {value: 'Nível Superior Completo'},
-                    {value: 'Nível Superior Incompleto'}
-                ],
-
-                areas: [],
-
-                loading: true,
-                sending: false
-            }
-        },
-
-        methods: {
-            submitForm () {
-                this.$validator.validateAll().then( () => {
-                    if(this.nivel_escolaridade == "") {
-                        alert('Selecione a escolaridade')
-                        return
-                    }
-                    this.sending = true;
-                    const config = {
-                        headers: {
-                            'content-type': 'multipart/form-data'
-                        }
-                    }
-                    axios.post('/api/', this.frm).then(response => {
-                        this.sending = false;
-                        Materialize.toast('Currículo cadastrado com sucesso, boa sorte!', 4000)
-                    }).catch(err => {
-                        console.log(err);
-                        alert("Ocorreu um erro ao enviar os dados para o servidor, tente novamente mais tarde");
-                        this.sending = false;
-                    });
-                }).catch(() => {
-                    alert("Favor preencher os campos corretamente.")
-                })
-            },
-
-            loadAreas () {
-                axios.get('/api/areas').then(response => {
-                    this.areas = response.data
-                    this.loading =false;
-                });
-            },
-
-
-            selectedFile (e) {
-                let fileReader = new FileReader()
-                fileReader.readAsDataURL(e.target.files[0])
-                fileReader.onload = (e) => {
-                    this.frm.arquivo = e.target.result
-                }
-            },
-
-            buscaCep () {
-                if(this.frm.cep.length == 9) {
-                    console.log(this.frm.cep);
-                    axios.get(`https://viacep.com.br/ws/${this.frm.cep}/json`).then(response => {
-                        if(!response.data.error) {
-                            let data = response.data
-                            this.frm.bairro = data.bairro
-                            this.frm.cidade = data.localidade
-                            this.frm.endereco = data.logradouro
-                            this.frm.uf = data.uf
-                        }
-                    });
-                }
-            }
-        }
-    }
-</script>
-
 <template>
     <div class="section">
         <div class="row">
-
             <div class="col s12 m8 l12 offset-m2">
                 <div class="card z-depth-3">
-                    <form @submit.prevent="submitForm">
+                    <form @submit.prevent="submitForm" enctype="multipart/form-data">
                         <div class="card-content">
                             <h5 class="header">Dados pessoais</h5>
                             <div class="row">
@@ -232,7 +108,7 @@
                                 <div class="file-field input-field col s12 m5">
                                     <div class="btn btn-flat">
                                         <i class="large material-icons">open_in_browser</i>
-                                        <input accept=".doc,.docx,.pdf" type="file" @change="selectedFile($event)">
+                                        <input name="cv_file" id="cv_file" accept=".doc,.docx,.pdf" type="file" @change="selectedFile">
                                     </div>
                                     <div class="file-path-wrapper">
                                         <input class="file-path validate" type="text" placeholder="Selecione o arquivo">
@@ -252,6 +128,158 @@
         </div>
     </div>
 </template>
+
+<script>
+    import axios from 'axios'
+    import pt from 'vee-validate/dist/locale/pt_BR'
+
+    export default {
+
+        mounted () {
+            $('select').material_select()
+            this.loadAreas()
+            this.$validator.updateDictionary({
+                pt_br: {
+                    messages: pt.messages,
+                    attributes: {
+                        nome_completo: "nome completo",
+                        dt_nascimento: "data nascimento",
+                        email1: "email principal",
+                        email2: "email secundário",
+                        tel1: "telefone principal",
+                        nivel_escolaridade: "escolaridade"
+                    }
+                }
+            })
+
+            this.$validator.setLocale('pt_br')
+        },
+
+        data () {
+            return {
+                frm: {
+                    nome_completo: '',
+                    cpf: '',
+                    rg: '',
+                    dt_nascimento: '',
+                    email1: '',
+                    email2: '',
+                    cel1: '',
+                    cel2: '',
+                    cep: '',
+                    cidade: '',
+                    uf: '',
+                    bairro: '',
+                    endereco: '',
+                    areas_interesse: [],
+                    nivel_escolaridade: '',
+                    arquivo: ''
+                },
+
+                niveis: [
+                    {value: 'Nível Médio Completo'},
+                    {value: 'Nível Médio Incompleto'},
+                    {value: 'Nível Técnico Completo'},
+                    {value: 'Nível Técnico Incompleto'},
+                    {value: 'Nível Superior Completo'},
+                    {value: 'Nível Superior Incompleto'}
+                ],
+
+                areas: [],
+
+                loading: true,
+                sending: false
+            }
+        },
+
+        methods: {
+            /**
+            * Envia os dados para o servidor
+            */
+            submitForm () {
+                this.$validator.validateAll().then( () => {
+                    if(this.nivel_escolaridade == "") {
+                        alert('Selecione a escolaridade')
+                        return
+                    }
+                    this.sending = true;
+                    const config = {
+                        headers: {
+                            'content-type': 'multipart/form-data'
+                        }
+                    }
+
+                    var formData = new FormData(this);
+                    formData.append('nome_completo', this.frm.nome_completo)
+                    formData.append('cpf', this.frm.cpf)
+                    formData.append('rg', this.frm.rg)
+                    formData.append('dt_nascimento', this.frm.dt_nascimento)
+                    formData.append('email1', this.frm.email1)
+                    formData.append('email2', this.frm.email2)
+                    formData.append('cel1', this.frm.cel1)
+                    formData.append('cel2', this.frm.cel2)
+                    formData.append('cep', this.frm.cep)
+                    formData.append('cidade', this.frm.cidade)
+                    formData.append('uf', this.frm.uf)
+                    formData.append('bairro', this.frm.bairro)
+                    formData.append('endereco', this.frm.endereco)
+                    formData.append('areas_interesse', this.frm.areas_interesse)
+                    formData.append('nivel_escolaridade', this.frm.nivel_escolaridade)
+                    if (this.frm.arquivo.length) {
+                      jQuery.each(this.frm.arquivo, function(i, file) {
+                         formData.append('arquivo', file)
+                      });
+                    }
+                    axios.post('/api/', formData).then(response => {
+                        this.sending = false;
+                        Materialize.toast('Currículo cadastrado com sucesso, boa sorte!', 4000)
+                    }).catch(err => {
+                        console.log(err);
+                        alert("Ocorreu um erro ao enviar os dados para o servidor, tente novamente mais tarde");
+                        this.sending = false;
+                    });
+                }).catch(() => {
+                    alert("Favor preencher os campos corretamente.")
+                })
+            },
+
+            /**
+            * Carrega as áreas de interesse dinamicamente
+            */
+            loadAreas () {
+                axios.get('/api/areas').then(response => {
+                    this.areas = response.data
+                    this.loading = false;
+                });
+            },
+
+            /**
+            * Evento quando arquivo for selecionado
+            */
+            selectedFile (e) {
+                this.frm.arquivo = e.target.files || e.dataTransfer.files
+            },
+
+            /**
+            * Retorna o endereço através do cep
+            */
+            buscaCep () {
+                if(this.frm.cep.length == 9) {
+                    console.log(this.frm.cep);
+                    axios.get(`https://viacep.com.br/ws/${this.frm.cep}/json`).then(response => {
+                        if(!response.data.error) {
+                            let data = response.data
+                            this.frm.bairro = data.bairro
+                            this.frm.cidade = data.localidade
+                            this.frm.endereco = data.logradouro
+                            this.frm.uf = data.uf
+                        }
+                    });
+                }
+            }
+        }
+    }
+</script>
 
 <style>
     .header {

@@ -30,6 +30,6 @@
 
     <script src="https://unpkg.com/vue-multiselect@2.0.0-beta.14"></script>
     <script src="js/app.js"></script>
-
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
 </body>
 </html>
