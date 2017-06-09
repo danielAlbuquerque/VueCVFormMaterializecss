@@ -7,7 +7,6 @@
         mounted () {
             $('select').material_select()
             this.loadAreas()
-            console.log(pt);
             this.$validator.updateDictionary({
                 pt_br: {
                     messages: pt.messages,
@@ -34,8 +33,8 @@
                     dt_nascimento: '',
                     email1: '',
                     email2: '',
-                    tel1: '',
-                    tel2: '',
+                    cel1: '',
+                    cel2: '',
                     cep: '',
                     cidade: '',
                     uf: '',
@@ -57,17 +56,31 @@
 
                 areas: [],
 
-                loading: true
+                loading: true,
+                sending: false
             }
         },
 
         methods: {
             submitForm () {
-                this.$validator.validateAll().then(() => {
+                this.$validator.validateAll().then( () => {
+                    if(this.nivel_escolaridade == "") {
+                        alert('Selecione a escolaridade')
+                        return
+                    }
+                    this.sending = true;
+                    const config = {
+                        headers: {
+                            'content-type': 'multipart/form-data'
+                        }
+                    }
                     axios.post('/api/', this.frm).then(response => {
-                        console.log(response);
+                        this.sending = false;
+                        Materialize.toast('Currículo cadastrado com sucesso, boa sorte!', 4000)
                     }).catch(err => {
                         console.log(err);
+                        alert("Ocorreu um erro ao enviar os dados para o servidor, tente novamente mais tarde");
+                        this.sending = false;
                     });
                 }).catch(() => {
                     alert("Favor preencher os campos corretamente.")
@@ -75,23 +88,14 @@
             },
 
             loadAreas () {
-                setTimeout(() => {
-                  axios.get('/api/areas').then(response => {
-                      this.areas = response.data
-                      this.loading =false;
-                  });
-                }, 1000)
-
-            },
-
-            onChangeEscolaridade () {
-                console.log("teste")
-                // this.nivel_escolaridade = value
+                axios.get('/api/areas').then(response => {
+                    this.areas = response.data
+                    this.loading =false;
+                });
             },
 
 
             selectedFile (e) {
-                console.log(e.target.files[0]);
                 let fileReader = new FileReader()
                 fileReader.readAsDataURL(e.target.files[0])
                 fileReader.onload = (e) => {
@@ -120,14 +124,13 @@
 <template>
     <div class="section">
         <div class="row">
+
             <div class="col s12 m8 l12 offset-m2">
                 <div class="card z-depth-3">
                     <form @submit.prevent="submitForm">
                         <div class="card-content">
                             <h5 class="header">Dados pessoais</h5>
                             <div class="row">
-
-
                                 <div class="input-field col s12 m9">
                                     <input v-validate="'required'" v-model="frm.nome_completo" name="nome_completo" type="text" maxlength="255">
                                     <label>Nome completo</label>
@@ -163,17 +166,18 @@
                             </div>
                             <div class="row">
                                 <div class="input-field col m3 s12">
-                                    <input v-validate="'required'" v-mask="'(##) #####-####'" v-model="frm.tel1" name="tel1" id="tel1" type="tel">
-                                    <label for="tel1" class="">Telefone Principal</label>
-                                    <span v-show="errors.has('tel1')" class="erro">{{ errors.first('tel1') }}</span>
+                                    <input v-validate="'required'" v-mask="'(##) #####-####'" v-model="frm.cel1" name="cel1" id="cel1" type="tel">
+                                    <label for="cel1" class="">Telefone Principal</label>
+                                    <span v-show="errors.has('cel1')" class="erro">{{ errors.first('cel1') }}</span>
                                 </div>
                                 <div class="input-field col m3 s12">
-                                    <input v-mask="'(##) #####-####'" v-model="frm.tel2" id="tel2" type="tel">
-                                    <label for="tel2" class="">Telefone Secundário (opcional) </label>
+                                    <input v-mask="'(##) #####-####'" v-model="frm.cel2" id="cel2" type="tel">
+                                    <label for="cel2" class="">Telefone Secundário (opcional) </label>
                                 </div>
                                 <div class="input-field col m6 s12">
-                                    <material-select v-model="frm.nivel_escolaridade" @change="onChangeEscolaridade">
-                                         <option v-for="option in niveis" :value="option.value" v-text="option.value"></option>
+                                    <material-select  v-model="frm.nivel_escolaridade">
+                                        <option value="" disabled selected> - selecione -</option>
+                                        <option v-for="option in niveis" :value="option.value" v-text="option.value"></option>
                                     </material-select>
                                     <label class="">Escolaridade</label>
                                     <span v-show="errors.has('nivel_escolaridade')" class="erro">{{ errors.first('nivel_escolaridade') }}</span>
@@ -228,7 +232,7 @@
                                 <div class="file-field input-field col s12 m5">
                                     <div class="btn btn-flat">
                                         <i class="large material-icons">open_in_browser</i>
-                                        <input type="file" @change="selectedFile($event)">
+                                        <input accept=".doc,.docx,.pdf" type="file" @change="selectedFile($event)">
                                     </div>
                                     <div class="file-path-wrapper">
                                         <input class="file-path validate" type="text" placeholder="Selecione o arquivo">
@@ -240,6 +244,9 @@
                             <button type="submit" class="waves-effect waves-light btn teal darken-3"><i class="material-icons left">done_all</i>Enviar</button>
                         </div>
                     </form>
+                    <div class="progress" v-show="sending">
+                        <div class="indeterminate"></div>
+                    </div>
                 </div>
             </div>
         </div>
